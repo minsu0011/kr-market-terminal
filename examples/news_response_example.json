@@ -1,0 +1,22 @@
+{
+  "symbol": "005930",
+  "clusters": [
+    {
+      "cluster_id": "event-id",
+      "canonical_title": "삼성전자 공급계약 공시",
+      "verification": {
+        "status": "VERIFIED_PRIMARY",
+        "article_count": 4,
+        "independent_source_count": 2,
+        "primary_source_count": 1,
+        "syndicated_copy_count": 1
+      },
+      "evaluation": {
+        "score_label": "현재 뉴스·수급·가격 확인 점수",
+        "confirmation_groups": ["가격", "수급"],
+        "statistics_available": false,
+        "automatic_order": false
+      }
+    }
+  ]
+}

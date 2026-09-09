@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>국장 단타 분석 터미널</title>
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css?v=20260803-public-gpt5-8767-manual-chatgpt-thresholds"><script src="/static/plotly.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">K</span><strong>KR DAY TRADING</strong></div>
+  <label class="stock-search-wrap"><span>⌕</span><input id="stock-search" autocomplete="off" placeholder="종목명 또는 코드 검색"></label>
+  <nav class="top-tabs" id="stock-tabs" aria-label="종목 검색 결과"></nav>
+  <div class="top-actions"><span class="status-dot" id="connection-dot"></span><span id="connection-text">연결 준비</span><span class="clock" id="clock"></span><button class="icon-btn key-btn" id="api-key-btn" title="API 키 관리">🔑 API</button><button class="icon-btn" id="settings-btn" title="설정">⚙</button></div>
+</header>
+
+<main class="terminal-grid">
+  <aside class="tool-rail" aria-label="차트 도구">
+    <button class="rail-btn active" data-tool="cursor" title="조회">⌖</button><button class="rail-btn" data-tool="buy" title="매수점">B</button><button class="rail-btn" data-tool="sell" title="매도점">S</button><button class="rail-btn" data-tool="reset" title="차트 초기화">↺</button><div class="rail-spacer"></div><button class="rail-btn" data-tool="fullscreen" title="전체 화면">⛶</button>
+  </aside>
+
+  <section class="left-stack">
+    <section class="pane chart-pane">
+      <div class="pane-header chart-header">
+        <div><div class="symbol-title"><span id="symbol-name">삼성전자</span><span id="symbol-code">005930</span></div><div class="price-strip"><strong id="current-price">-</strong><span id="current-change">-</span><span class="source-badge" id="data-source">PUBLIC</span></div></div>
+        <div class="chart-controls">
+          <div class="segmented" id="range-controls"><button class="active" data-range="1d">1일</button><button data-range="1w">1주</button><button data-range="1mo">1개월</button><button data-range="3mo">3개월</button></div>
+          <div class="segmented" id="interval-controls"><button class="active" data-interval="1m">1분</button><button data-interval="3m">3분</button><button data-interval="5m">5분</button><button data-interval="15m">15분</button></div>
+          <div class="segmented chart-type"><button class="active" id="candle-mode">캔들</button><button id="line-mode">라인</button></div><button class="small-btn" id="refresh-btn">↻</button>
+        </div>
+      </div>
+      <div class="chart-selection-bar"><span>차트 클릭</span><button class="select-mode active" data-mode="inspect">조회</button><button class="select-mode buy" data-mode="buy">매수점</button><button class="select-mode sell" data-mode="sell">매도점</button><span class="selected-chip buy" id="selected-buy">매수: 미지정</span><span class="selected-chip sell" id="selected-sell">매도: 미지정</span><button class="small-btn" id="clear-selection">선택 해제</button></div>
+      <div id="main-chart" class="main-chart"></div>
+      <div class="chart-footer"><span id="hover-info">봉에 마우스를 올리면 OHLCV가 표시됩니다.</span><span>가격 · 거래대금은 원(₩)</span></div>
+    </section>
+
+    <section class="pane depth-pane">
+      <div class="pane-header"><strong>실시간 호가 · 체결</strong><span class="muted" id="depth-quality">-</span></div>
+      <div class="depth-summary"><div><span>매도 1호가</span><strong id="best-ask">-</strong></div><div><span>현재가</span><strong id="depth-price">-</strong></div><div><span>매수 1호가</span><strong id="best-bid">-</strong></div></div>
+      <div id="orderbook" class="orderbook"></div>
+      <div class="mini-section"><div class="section-title">회원사·창구 수급</div><div class="notice-inline">네이버 일별 상위 5개 창구(약 20분 지연). 기관 투자자 수급과 별개이며 KIS 연결 시 정밀 보강됩니다.</div><div id="member-flow" class="member-flow"></div></div>
+    </section>
+  </section>
+
+  <section class="pane center-pane">
+    <div class="pane-header"><strong>현재 상태 · 가상 주문</strong><span class="muted" id="snapshot-time">-</span></div>
+    <section class="candidate-strip">
+      <div><strong>AI 매수 검토 종목</strong><small>뉴스·수급·가격 확인 · 자동주문 없음</small></div>
+      <div id="candidate-strip-items"><span class="unknown">검증된 후보 없음</span></div>
+    </section>
+    <div class="account-grid"><div><span>시드머니</span><strong id="summary-seed">-</strong></div><div><span>가용 현금</span><strong id="summary-cash">-</strong></div><div><span>실현손익</span><strong id="summary-pnl">-</strong></div><div><span>완료 거래</span><strong id="summary-closed-count">-</strong></div></div>
+    <section class="market-pane"><div class="section-title">실시간 핵심 피처</div><div id="radar-cards" class="radar-cards"></div><div class="data-notice" id="data-notice"></div></section>
+    <section class="order-pane">
+      <div class="section-title">가상 매수·매도 <span class="muted">실주문 전송 없음</span></div>
+      <div class="order-grid">
+        <label>시드머니<input id="seed-money" type="number" min="10000" step="10000"></label><label>주문 방식<select id="trade-mode"><option value="realtime">현재가</option><option value="historical">차트 과거</option></select></label>
+        <label>모의 방향<select id="trade-side"><option value="LONG">LONG 모의매수</option><option value="SHORT">SHORT 모의숏</option></select></label><label>안전 구분<input value="가상거래 전용 · 실주문 없음" readonly></label>
+        <label>매수가(원)<input id="buy-price" type="number" min="1"></label><label>매수시각<input id="buy-time" readonly></label>
+        <label>매도가(원)<input id="sell-price" type="number" min="1"></label><label>매도시각<input id="sell-time" readonly></label>
+        <label>주문금액(원)<input id="order-amount" type="number" min="0" step="10000"></label><label>수량(주)<input id="quantity" type="number" min="1"></label>
+      </div>
+      <div class="ratio-row"><button data-ratio="0.1">10%</button><button data-ratio="0.25">25%</button><button data-ratio="0.5">50%</button><button data-ratio="1">100%</button><span id="estimated-cost">예상 체결금액 -</span></div>
+      <div class="order-actions"><button class="buy-action" id="open-buy">LONG 가상 진입</button><button class="sell-action" id="close-sell">선택 포지션 청산</button><button class="history-action" id="save-history">과거 거래 저장</button></div>
+      <div class="order-message" id="order-message">차트에서 매수점과 매도점을 선택하거나 현재가를 사용하십시오.</div>
+    </section>
+    <section class="portfolio-section"><div class="section-title">보유 포지션</div><div class="table-wrap"><table><thead><tr><th>종목</th><th>수량</th><th>진입가</th><th>상태</th><th></th></tr></thead><tbody id="open-position-table"></tbody></table></div><div class="section-title">최근 거래</div><div class="table-wrap compact"><table><thead><tr><th>시간</th><th>진입→청산</th><th>수익률</th><th>결과</th><th>피처 복기</th></tr></thead><tbody id="recent-trade-table"></tbody></table></div></section>
+    <section class="log-pane"><div class="section-title">거래 로그 <button class="small-btn" id="delete-trade">선택 삭제</button></div><div class="table-wrap log-table"><table><thead><tr><th>ID</th><th>구분</th><th>진입</th><th>청산</th><th>수량</th><th>순손익</th><th>피처 복기</th></tr></thead><tbody id="trade-log-table"></tbody></table></div></section>
+  </section>
+
+  <section class="pane right-pane">
+    <div class="right-tabs"><button class="right-tab active" data-tab="features">실시간 피처</button><button class="right-tab" data-tab="news">뉴스 검증</button><button class="right-tab" data-tab="candidates">매수 검토</button><button class="right-tab" data-tab="attention">주의</button><button class="right-tab" data-tab="positions">수급 설명</button><button class="right-tab" data-tab="analysis">거래 분석</button></div>
+    <div class="right-content active" id="tab-features">
+      <div class="feature-toolbar">
+        <input id="feature-search" placeholder="피처 검색">
+        <select id="feature-group-filter"><option value="all">전체 그룹</option></select>
+        <select id="feature-sort" title="피처 정렬"><option value="default">기본순</option><option value="ai">AI순</option><option value="importance">중요도</option><option value="risk">위험도</option></select>
+      </div>
+      <div class="ai-alert-banner hidden" id="ai-alert-banner"></div>
+      <div class="market-watch-strip" id="market-watch-strip">
+        <span>시장 피처 연결 중</span>
+      </div>
+      <div class="feature-ai-split">
+        <div id="feature-groups" class="feature-groups"></div>
+        <aside class="ai-panel" id="ai-panel">
+          <div class="ai-panel-head"><div><strong>GPT 조건부 분석</strong><span id="ai-model">GPT-5.6 Sol · 최고 추론</span></div><span class="ai-state" id="ai-state">대기</span></div>
+          <div class="ai-live-context" id="ai-live-context">실시간 수집 피처·뉴스·수급을 연결하는 중입니다.</div>
+          <label class="ai-question-label" for="ai-question">질문 <button class="small-btn" id="ai-auto-prompt">종목·시간·피처 자동생성</button></label>
+          <div class="ai-question-row"><textarea id="ai-question" maxlength="50000" placeholder="분석할 내용을 입력하면 회사·한국시간·전체 피처 목록이 프롬프트에 자동으로 포함됩니다."></textarea><button id="ai-send-prompt" title="회사·한국시간·전체 수집 피처를 GPT 최고모델로 전송">검색·GPT 전송</button></div>
+          <section class="manual-gpt-panel" aria-label="ChatGPT Plus 수동 분석">
+            <div class="manual-gpt-head"><strong>ChatGPT Plus 수동 분석</strong><small>API 미사용 · 자동 주문 없음</small></div>
+            <p>프롬프트와 차트 PNG를 만든 뒤 ChatGPT를 엽니다. 붙여넣은 답변의 매수·매도 기준선은 현재 피처값 옆 괄호에 표시됩니다.</p>
+            <div class="manual-gpt-actions"><button id="manual-gpt-open" class="primary">ChatGPT 열기 · 프롬프트·캡처</button><button id="manual-gpt-prompt">프롬프트 파일</button></div>
+            <label for="manual-gpt-response">ChatGPT JSON 답변 붙여넣기</label>
+            <textarea id="manual-gpt-response" maxlength="50000" placeholder="ChatGPT 답변의 JSON 코드 블록을 그대로 붙여넣으세요."></textarea>
+            <div class="manual-gpt-actions"><button id="manual-gpt-apply">기준선 반영</button><button id="manual-gpt-clear">기준선 지우기</button></div>
+            <small class="manual-gpt-status" id="manual-gpt-status">수동 분석 기준선은 이 브라우저와 종목에만 저장됩니다.</small>
+          </section>
+          <div class="ai-primary-actions">
+            <button data-ai-type="MARKET">오늘 시장·조건분석</button><button data-ai-type="SYMBOL" class="primary">종목 진입조건</button><button data-ai-type="POSITION">포지션 분석</button><button id="ai-cancel" class="hidden">취소</button>
+          </div>
+          <div class="ai-progress"><i id="ai-progress-bar"></i></div>
+          <div class="ai-status" id="ai-status">버튼을 누르면 회사·KST 기준시각·전체 수집 피처를 GPT에 전송합니다.</div>
+          <div class="ai-secondary-actions">
+            <button id="ai-apply-order">AI 배열 적용</button><button id="ai-restore-order">기본 배열 복원</button>
+            <button id="ai-apply-alerts">AI 경고선 적용</button><button id="ai-clear-alerts">경고선 해제</button>
+            <button id="ai-save">분석 저장</button><button id="ai-history">이전 분석</button>
+          </div>
+          <button class="ai-response-button" id="ai-prepare-response">주목 피처로 반자동 대응 준비</button>
+          <div class="virtual-auto-control"><button id="ai-virtual-auto">자동 모의대응 OFF</button><span id="ai-virtual-auto-status">사용자가 켠 동안만 조건 충족 시 LONG/SHORT 가상거래 · 실주문 절대 없음</span></div>
+          <div class="semi-auto-playbook hidden" id="semi-auto-playbook"></div>
+          <div class="ai-answer" id="ai-answer">
+            <div class="ai-empty">질문과 답변은 이 영역에 표시됩니다. 다른 차트·거래 레이아웃은 변경하지 않습니다.</div>
+          </div>
+          <div class="ai-stat-note">현재 AI 분석은 실시간·최근 피처 해석입니다. 역사적 승률과 기대수익은 별도 통계 엔진 연결 후 제공됩니다.</div>
+        </aside>
+      </div>
+    </div>
+    <div class="right-content news-content" id="tab-news">
+      <div class="news-toolbar"><div><strong>실시간 기업 뉴스 검증</strong><small id="news-refresh-time">갱신 전</small></div><button class="small-btn" id="news-refresh-btn">뉴스 새로고침</button></div>
+      <div class="news-provider-line" id="news-provider-line"></div>
+      <div class="institution-priority-strip" id="institution-priority-strip">
+        <div><span>기관 투자자</span><strong class="unknown">미제공</strong><small>기관 장중 누적 수급</small></div>
+        <div><span>외국인</span><strong class="unknown">미제공</strong><small>외국인 장중 누적 수급</small></div>
+        <div><span>증권사 회원사 창구</span><strong class="unknown">미제공</strong><small>기관 투자자와 별개</small></div>
+      </div>
+      <div class="news-layout"><div class="news-list" id="news-list"></div><div class="news-detail" id="news-detail"><div class="analysis-empty">뉴스 사건 클러스터를 선택하십시오.</div></div></div>
+    </div>
+    <div class="right-content" id="tab-candidates">
+      <div class="candidate-disclaimer">뉴스·수급·가격 기반 매수 검토 목록이며 자동주문 또는 검증된 기대수익 모델이 아닙니다.</div>
+      <div class="candidate-list" id="buy-review-list"></div>
+    </div>
+    <div class="right-content" id="tab-attention">
+      <div class="candidate-disclaimer warning">미검증 루머만으로 매도 검토를 만들지 않습니다. 주의 목록도 원출처·가격·수급을 분리 확인합니다.</div>
+      <div class="candidate-list" id="attention-list"></div>
+    </div>
+    <div class="right-content" id="tab-positions"><div class="analysis-empty">왼쪽 아래에는 실시간 호가와 회원사 수급, 가운데에는 현재 시드·가상 주문·포지션을 배치했습니다. 금액 피처는 모두 원(₩)으로 표시됩니다.</div></div>
+    <div class="right-content" id="tab-analysis"><div class="analysis-empty" id="analysis-empty">거래 행을 클릭하면 진입·청산 시점의 피처를 비교합니다.</div><div id="analysis-result" class="analysis-result hidden"></div></div>
+  </section>
+</main>
+
+<footer class="statusbar"><span id="bottom-status">초기화 중</span><span>로컬 전용 · 금액은 원(₩) · 무키 실데이터 기본 · 실주문 없음</span></footer>
+<div class="modal hidden" id="settings-modal"><div class="modal-card"><div class="modal-header"><strong>터미널 설정</strong><button id="settings-close">×</button></div><label>데이터 모드<select id="settings-mode"><option value="public">간편 무키 실데이터</option><option value="kis">한국투자 KIS 보강</option><option value="demo">DEMO(가상 데이터)</option></select></label><label>새로고침(ms)<input id="settings-refresh" type="number" min="250" max="10000"></label><label>뉴스 최소 중요도(0~100)<input id="settings-news-materiality" type="number" min="0" max="100"></label><label>뉴스 최소 데이터 품질(0~100)<input id="settings-news-quality" type="number" min="0" max="100"></label><label>매수·매도 수수료율<input id="settings-fee" type="number" step="0.00001"></label><label>매도세율<input id="settings-tax" type="number" step="0.0001"></label><label>슬리피지율<input id="settings-slippage" type="number" step="0.00001"></label><p class="modal-note">무키 실데이터가 기본입니다. 앱은 실제 주문을 전송하지 않으며 가상거래만 수행합니다.</p><button class="primary-btn" id="settings-save">저장</button></div></div>
+
+<div class="modal hidden" id="api-setup-modal">
+  <div class="modal-card api-setup-card">
+    <div class="modal-header"><div><strong>최초 실행 · 실데이터/API 설정</strong><small>키 없이 공개 데이터로 바로 시작할 수 있으며, 미제공 피처에는 필요한 API를 정확히 표시합니다.</small></div><button id="api-setup-close" title="나중에 설정">×</button></div>
+    <div class="setup-truth" id="setup-truth">키 상태를 확인하는 중입니다.</div>
+    <section class="setup-section required">
+      <div class="setup-section-head"><div><strong>1. 간편 무키 실데이터</strong><small>현재가 · 5단계 호가 · 1분/일봉 · 수급 · 회원사 · 지수 · 뉴스 · DART RSS · 공개 거시</small></div><span id="setup-public-status">자동연결</span></div>
+      <div class="setup-message" id="setup-public-detail">인증서·증권계좌·API 키 없이 시작합니다. 데이터별 출처·지연·미제공 상태를 따로 표시합니다.</div>
+    </section>
+    <section class="setup-section required">
+      <div class="setup-section-head"><div><strong>선택. 한국투자증권 KIS 정밀 보강</strong><small>거래소급 체결 · 국내/야간선물 · 정밀 회원사 데이터가 꼭 필요할 때만</small></div><span id="setup-kis-status">선택</span></div>
+      <label>APP Key<input id="setup-kis-key" type="password" autocomplete="new-password" placeholder="저장된 값은 표시하지 않습니다"></label>
+      <label>APP Secret<input id="setup-kis-secret" type="password" autocomplete="new-password" placeholder="저장된 값은 표시하지 않습니다"></label>
+      <label>KIS 앱 구분<select id="setup-kis-mode"><option value="real">실전 앱 키</option><option value="paper">모의투자 앱 키</option></select></label>
+      <label class="setup-check"><input id="setup-activate-kis" type="checkbox" checked> 저장 후 KIS 인증을 검사하고 정밀 보강 모드로 전환</label>
+      <div class="setup-provider-detail" id="setup-kis-detail">필요 피처: 거래소급 체결·호가, KOSPI200 선물, 야간선물, 정밀 투자자/회원사 수급</div>
+      <a href="https://apiportal.koreainvestment.com/" target="_blank" rel="noopener">KIS 공식 발급처 열기 ↗</a>
+    </section>
+    <section class="setup-section">
+      <div class="setup-section-head"><div><strong>2. OpenAI</strong><small>오른쪽 GPT 질문 · 트리거/거래 복기 · 최고모델 분석</small></div><span id="setup-openai-status">GPT용</span></div>
+      <label>OpenAI API Key<input id="setup-openai-key" type="password" autocomplete="new-password" placeholder="sk-... (빈칸이면 기존 값 유지)"></label>
+      <div class="setup-provider-detail" id="setup-openai-detail">필요 기능: GPT 시장/종목 분석, 트리거 기준선, 거래 복기, 뉴스 GPT 분석</div>
+      <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI 공식 API Keys 열기 ↗</a>
+    </section>
+    <details class="setup-optional">
+      <summary>선택 데이터 키 (공시 · 거시)</summary>
+      <section class="setup-section">
+        <div class="setup-section-head"><div><strong>OpenDART</strong><small>DART 공식 오늘 공시 RSS는 무키 자동 · 키는 과거 구조화 검색 보강용</small></div><span id="setup-dart-status">무키 연결</span></div>
+        <label>OpenDART 인증키<input id="setup-dart-key" type="password" autocomplete="new-password" placeholder="40자리 인증키"></label>
+        <div class="setup-provider-detail" id="setup-dart-detail">무키: DART RSS · 키 보강: 구조화 공시검색 및 재무제표</div>
+        <a href="https://opendart.fss.or.kr/uss/umt/EgovMberInsertView.do" target="_blank" rel="noopener">OpenDART 공식 신청 ↗</a>
+      </section>
+      <section class="setup-section">
+        <div class="setup-section-head"><div><strong>네이버 뉴스 검색 API</strong><small>네이버 금융 종목뉴스는 무키 자동 · 개발자 키는 검색 범위 보강용</small></div><span id="setup-naver-status">무키 연결</span></div>
+        <label>NAVER Client ID<input id="setup-naver-id" type="password" autocomplete="new-password" placeholder="네이버 개발자센터 Client ID"></label>
+        <label>NAVER Client Secret<input id="setup-naver-secret" type="password" autocomplete="new-password" placeholder="빈칸이면 기존 값 유지"></label>
+        <div class="setup-provider-detail" id="setup-naver-detail">무키: 네이버 금융 종목뉴스 · 키 보강: 네이버 뉴스 검색 범위</div>
+        <a href="https://developers.naver.com/apps/#/register" target="_blank" rel="noopener">네이버 애플리케이션 등록 ↗</a>
+      </section>
+      <section class="setup-section adapter-only">
+        <div class="setup-section-head"><div><strong>한국은행 ECOS</strong><small>무키 sample 기준금리 + FRED 금리/신용 + 공개 환율 자동 · 키는 확장 통계용</small></div><span id="setup-ecos-status">무키 연결</span></div>
+        <label>ECOS 인증키<input id="setup-ecos-key" type="password" autocomplete="new-password" placeholder="빈칸이면 기존 값 유지"></label>
+        <div class="setup-provider-detail" id="setup-ecos-detail">키 보강: 한국은행 기준금리·환율·주택 관련 공식 주요경제지표</div>
+        <a href="https://ecos.bok.or.kr/api/" target="_blank" rel="noopener">ECOS 공식 Open API ↗</a>
+      </section>
+    </details>
+    <p class="secret-note">키는 브라우저·거래 DB·로그·URL·평문 파일에 남기지 않습니다. Windows 현재 사용자 전용 DPAPI로 암호화해 <code>data/secrets.dpapi</code>에 저장하며, 저장값은 화면/API로 다시 돌려주지 않습니다.</p>
+    <div class="setup-message" id="setup-message"></div>
+    <div class="setup-validation hidden" id="setup-validation"></div>
+    <div class="setup-actions">
+      <button id="api-setup-skip">API 없이 공개 데이터로 시작</button>
+      <button id="api-setup-test">연결 테스트</button>
+      <button id="api-setup-clear">입력값 지우기</button>
+      <button id="api-setup-later">나중에 설정</button>
+      <button id="api-setup-reconfigure">저장된 API 다시 설정</button>
+      <button class="primary-btn" id="api-setup-save">입력한 API 저장 후 시작</button>
+    </div>
+  </div>
+</div>
+<script src="/static/app.js?v=20260803-public-gpt5-8767-manual-chatgpt-thresholds"></script>
+</body></html>

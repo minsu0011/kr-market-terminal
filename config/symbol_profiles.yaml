@@ -1,0 +1,137 @@
+version: 1
+symbols:
+  "005930":
+    name: 삼성전자
+    market: KOSPI
+    sector: 반도체
+    industry: 메모리·종합전자
+    profile: semiconductor_memory
+    peers_domestic: ["000660"]
+    peers_global: [SOXX, SMH, MU, NVDA, TSM]
+    macro_exposures:
+      usdkrw: POSITIVE_EXPORTER_BUT_FOREIGN_FLOW_RISK
+      us_10y: NEGATIVE_VALUATION
+  "000660":
+    name: SK하이닉스
+    market: KOSPI
+    sector: 반도체
+    industry: 메모리반도체
+    profile: semiconductor_memory
+    peers_domestic: ["005930"]
+    peers_global: [SOXX, SMH, MU, NVDA, TSM]
+  "005380":
+    name: 현대차
+    market: KOSPI
+    sector: 자동차
+    industry: 완성차·수출
+    profile: automobile_exporter
+    peers_domestic: ["000270"]
+    peers_global: [TSLA, GM, F]
+  "000270":
+    name: 기아
+    market: KOSPI
+    sector: 자동차
+    industry: 완성차·수출
+    profile: automobile_exporter
+    peers_domestic: ["005380"]
+    peers_global: [TSLA, GM, F]
+  "373220":
+    name: LG에너지솔루션
+    market: KOSPI
+    sector: 2차전지
+    industry: 배터리셀
+    profile: battery_materials
+    peers_domestic: ["005490"]
+    peers_global: [TSLA]
+  "005490":
+    name: POSCO홀딩스
+    market: KOSPI
+    sector: 철강·2차전지
+    industry: 철강·배터리소재
+    profile: battery_materials
+    peers_domestic: ["373220"]
+    peers_global: []
+  "035420":
+    name: NAVER
+    market: KOSPI
+    sector: 인터넷
+    industry: 플랫폼·광고·커머스
+    profile: internet_platform
+    peers_domestic: ["035720"]
+    peers_global: [QQQ]
+  "035720":
+    name: 카카오
+    market: KOSPI
+    sector: 인터넷
+    industry: 플랫폼·콘텐츠·핀테크
+    profile: internet_platform
+    peers_domestic: ["035420"]
+    peers_global: [QQQ]
+  "105560":
+    name: KB금융
+    market: KOSPI
+    sector: 금융
+    industry: 은행지주
+    profile: bank_financial
+    peers_domestic: ["055550"]
+    peers_global: []
+  "055550":
+    name: 신한지주
+    market: KOSPI
+    sector: 금융
+    industry: 은행지주
+    profile: bank_financial
+    peers_domestic: ["105560"]
+    peers_global: []
+  "207940":
+    name: 삼성바이오로직스
+    market: KOSPI
+    sector: 바이오
+    industry: CMO·바이오의약품
+    profile: biopharma
+    peers_domestic: ["068270"]
+    peers_global: [XBI, IBB]
+  "068270":
+    name: 셀트리온
+    market: KOSPI
+    sector: 바이오
+    industry: 바이오시밀러
+    profile: biopharma
+    peers_domestic: ["207940"]
+    peers_global: [XBI, IBB]
+  "012450":
+    name: 한화에어로스페이스
+    market: KOSPI
+    sector: 방산
+    industry: 방산·항공우주
+    profile: defense_aerospace
+    peers_domestic: []
+    peers_global: [ITA, PPA]
+  "034020":
+    name: 두산에너빌리티
+    market: KOSPI
+    sector: 전력·원전
+    industry: 발전설비·원전·가스터빈
+    profile: power_nuclear
+    peers_domestic: []
+    peers_global: [URA, NLR]
+
+profiles:
+  default:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart]
+  semiconductor_memory:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, semiconductor_memory]
+  automobile_exporter:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, automobile_exporter]
+  battery_materials:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, battery_materials]
+  internet_platform:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, internet_platform]
+  bank_financial:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, bank_financial]
+  biopharma:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, biopharma]
+  defense_aerospace:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, defense_aerospace]
+  power_nuclear:
+    feature_groups: [common_market, flow, news_institution, news_events, news_reaction, news_dart, power_nuclear]

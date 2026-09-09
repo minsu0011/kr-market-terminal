@@ -1,0 +1,53 @@
+version: 3
+providers:
+  public_naver_market:
+    implementation: CONNECTED_NO_KEY
+    source_type: NEAR_REALTIME
+    features: [price, orderbook, chart, investor_flow, member_flow, index, breadth, program_trading]
+  public_news:
+    implementation: CONNECTED_NO_KEY
+    source_type: NEAR_REALTIME
+    features: [naver_finance_news, dart_rss, independent_source_cluster]
+  public_global_macro:
+    implementation: CONNECTED_NO_KEY
+    source_type: PERIODIC
+    features: [yahoo_global, fred_rates, ecos_sample]
+  kis_realtime:
+    implementation: CONNECTED_AFTER_VALIDATION
+    source_type: REALTIME
+    required_env: [KIS_APP_KEY, KIS_APP_SECRET]
+    features: [price, orderbook, chart, member_flow, investor_estimate, kospi200_futures, night_futures]
+  open_dart:
+    implementation: CONNECTED_AFTER_VALIDATION
+    source_type: PERIODIC
+    required_env: [OPEN_DART_API_KEY]
+    base_url: https://opendart.fss.or.kr/api
+    features: [structured_disclosures, structured_financial_statements]
+  ecos:
+    implementation: CONNECTED_AFTER_VALIDATION
+    source_type: PERIODIC
+    required_env: [ECOS_API_KEY]
+    base_url: https://ecos.bok.or.kr/api
+    features: [bok_base_rate, usdkrw, house_price]
+  naver_news_search:
+    implementation: CONNECTED_AFTER_VALIDATION
+    source_type: DELAYED
+    required_env: [NAVER_CLIENT_ID, NAVER_CLIENT_SECRET]
+    features: [expanded_naver_news_search]
+  openai:
+    implementation: CONNECTED_AFTER_VALIDATION
+    source_type: AI_ANALYSIS
+    required_env: [OPENAI_API_KEY]
+    features: [market_analysis, trigger_lines, trade_debrief, news_analysis]
+  manual_json:
+    source_type: MANUAL
+    path: data/external_features.json
+  csv_upload:
+    source_type: MANUAL
+    directory: data/import
+
+freshness_seconds:
+  REALTIME: 10
+  DELAYED: 1800
+  PERIODIC: 604800
+  MANUAL: 2592000
