@@ -13,7 +13,7 @@ if errorlevel 1 goto failed
 
 copy /y ".env.example" "dist\.env.example" >nul
 if exist "PORTABLE_README.txt" (copy /y "PORTABLE_README.txt" "dist\README.txt" >nul) else (copy /y "..\PORTABLE_README.txt" "dist\README.txt" >nul)
-for %%F in (OPENAI_SETUP.md AI_ANALYSIS_ARCHITECTURE.md API_KEY_GUIDE_KO.md NEWS_PROVIDER_SETUP.md NEWS_PIPELINE_ARCHITECTURE.md CHANGES_FOR_GPT.md NEWS_GPT_VIRTUAL_GUIDE_KO.md) do (
+for %%F in (OPENAI_SETUP.md AI_ANALYSIS_ARCHITECTURE.md API_KEY_GUIDE_KO.md NEWS_PROVIDER_SETUP.md NEWS_PIPELINE_ARCHITECTURE.md NEWS_GPT_VIRTUAL_GUIDE_KO.md) do (
   if exist "%%F" copy /y "%%F" "dist\%%F" >nul
   if not exist "%%F" if exist "..\%%F" copy /y "..\%%F" "dist\%%F" >nul
 )

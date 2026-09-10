@@ -6,7 +6,7 @@
 
 처음 읽는 순서: [구조](Architecture.md) → [개발 과정](Development-Journey.md) → [결과와 한계](Validation-and-Results.md).
 
-실행을 준비한다면 [How to Run](How-to-Run.md)과 [출처](References.md)를 먼저 확인한다.
+실행을 준비한다면 [실행 안내](How-to-Run.md)과 [출처](References.md)를 먼저 확인한다.
 
 ## 문서 목록
 

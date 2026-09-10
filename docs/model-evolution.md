@@ -1,12 +1,5 @@
-# 실험 기록
+# 개발과 모델 선택
 
-| 단계 | 변경 | 근거 등급 | 판단 |
-| --- | --- | --- | --- |
-| 1 | 기본 terminal | SOURCE_REPORTED | RESEARCH_ONLY |
-| 2 | 뉴스 정합성 | SOURCE_REPORTED | RESEARCH_ONLY |
-| 3 | AI analysis | SOURCE_REPORTED | RESEARCH_ONLY |
-| 4 | provider resilience | SOURCE_REPORTED | CURRENT |
+이 서비스의 주된 산출물은 여러 데이터를 읽고 분석·경보·가상 거래로 연결하는 end-to-end 흐름이다. LLM은 구조화된 입력의 해석·설명을 담당하며 시세 공급자, feature 계산기, 수익성 검증기와 다르다.
 
-실시간 API 권한과 연결 상태에 의존한다. 외부 모델 해석은 투자 판단의 검증된 근거가 아니며 주문 연결은 별도 검토가 필요하다.
-
-데이터 버전·sample IDs·split·target·metric 정의·전처리·horizon을 모두 맞춘 비교가 아니면 NOT_DIRECTLY_COMPARABLE이다. 이 문서에서는 서로 다른 run의 점수 차이를 계산하지 않는다.
+[전체 모델 설명](wiki/Model-Evolution.md) · [검증](validation.md)

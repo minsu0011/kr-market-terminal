@@ -1,16 +1,7 @@
-# 검증
+# 검증 기준
 
-과거 성과는 UNKNOWN이며 현재 게시본 검사 범위는 아래 결과를 따른다.
+실시간 API 권한·지연과 외부 모델 응답에 의존한다. 분석 설명은 관측 사실이나 검증된 투자 판단을 대신하지 않는다. 로컬 가상매매와 실제 체결·주문 운영을 구분한다.
 
-현재 source의 구조를 확인했으며 기존 기록은 SOURCE_REPORTED로 구분한다. REPRODUCED는 이번 게시본에서 실행한 검사에만, RECEIPT_VERIFIED는 원본 결과 파일과 해시 연결을 확인한 수치에만 사용한다. 전체 학습 성능은 UNKNOWN 또는 SOURCE_REPORTED다.
+[상세 결과](wiki/Validation-and-Results.md)에서는 결과 수치와 해석 범위를 구분한다. 같은 데이터 버전·표본·split·target·metric·전처리·horizon이 아닌 실험끼리 점수 차이를 개선치로 계산하지 않는다.
 
-실시간 API 권한과 연결 상태에 의존한다. 외부 모델 해석은 투자 판단의 검증된 근거가 아니며 주문 연결은 별도 검토가 필요하다.
-
-게시본 검사 결과는 `checks.json`에 기록한다. 의존성·데이터가 없어 실행하지 못한 항목은 통과로 세지 않는다.
-
-## 이번 게시본 검사
-
-- Python 구문: PASS
-- 실행 범위: `pytest tests/test_news_pipeline.py tests/test_ai_analysis.py -q`
-- 결과: PASS
-- 세부 집계: passed=24
+[테스트 명령과 범위](testing-notes.md)는 함수·인터페이스 확인용이며 전체 연구의 재학습 성공을 뜻하지 않는다.
