@@ -84,8 +84,7 @@ def test_naver_news_auto_analysis_and_cluster_counts_are_visible() -> None:
 def test_portable_launcher_is_pinned_to_8767_with_fresh_assets() -> None:
     launcher = (ROOT / "launcher.py").read_text(encoding="utf-8")
     html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
-    package_root = ROOT.parent
-    run_bat = (package_root / "실행_프로그램.bat").read_text(encoding="utf-8")
+    run_bat = (ROOT / "RUN_PORTABLE.bat").read_text(encoding="utf-8")
     assert 'TERMINAL_PORT", "8767"' in launcher
     assert "public-gpt5-8767" in html
     assert "http://127.0.0.1:8767/" in run_bat

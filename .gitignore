@@ -29,6 +29,13 @@ venv*/
 DOWNLOADED_DATA/
 data/*
 !data/README.md
+!data/external_features.json
+!data/news_manual.json
+
+build/
+dist/
+*.exe
+*.dpapi
 
 .vscode/
 .idea/

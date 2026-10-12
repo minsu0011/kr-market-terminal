@@ -237,10 +237,7 @@ async def queue_news_gpt_analysis(symbol:str,overview:dict[str,Any])->str|None:
     materiality=int((latest.get("materiality") or {}).get("score") or 0)
     if verification in {"UNVERIFIED","SINGLE_SOURCE"} and materiality < 40:
         return None
-    # Evaluation refreshes ``last_updated_at`` even when the underlying event
-    
-    # every browser/news poll.  Re-run only when verification evidence or the
-    # event assessment materially changes.
+    # Re-analyze only when event evidence changes.
     verification_info=latest.get("verification") or {}
     analysis_key=json.dumps({
         "cluster_id":latest.get("cluster_id"),

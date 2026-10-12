@@ -1139,6 +1139,11 @@ class NewsPipelineService:
             UnavailableNewsProvider("company_ir", "기업별 IR 어댑터 미연결"),
             UnavailableNewsProvider("gdelt_news", "GDELT 뉴스 어댑터 미연결"),
         ]
+        if self.settings.data_mode == "demo":
+            self.providers = [
+                provider for provider in self.providers
+                if provider.provider_id in {"manual_news_json", "fixture_news"}
+            ]
 
     async def refresh(self, symbols: list[str], force: bool = False) -> dict[str, Any]:
         async with self._lock:

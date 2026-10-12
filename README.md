@@ -1,49 +1,82 @@
 # KR Market Terminal
 
-국내 주식의 시장 데이터, 뉴스, 분석 feature와 가상매매 기록을 한 화면에서 살펴보는 로컬 웹 터미널이다. 여러 공급자의 값과 분석 설명을 연결하면서, **값이 없는 상태·오래된 값·실제 관측값을 구분해 보여주는 구조**를 만들었다. 단일 모델 정확도보다 데이터가 UI와 의사결정까지 이어지는 흐름에 초점을 뒀다.
+국내주식의 분봉, 호가, 수급, 뉴스와 공시를 한 화면에서 확인하는 로컬 웹 터미널입니다. 여러 원천의 값을 종목별로 모으고, 값의 출처와 미제공 상태를 함께 표시합니다.
 
-## 전체 구조
+![터미널 데모](docs/images/terminal-demo.png)
 
-시장·뉴스 provider → feature registry·계산 엔진 → 분석 입력 구성 → AI 분석 작업 → 경보·가상매매 → API·WebSocket·UI
+*합성 시세와 뉴스로 구성한 기존 데모 화면입니다. 실제 시장 가격이나 투자 성과를 나타내지 않으며, 현재 화면과 일부 구성이 다를 수 있습니다.*
 
-- [app.py](app.py): FastAPI 라우트와 서비스 조립
-- [market_terminal](market_terminal): provider, 뉴스, feature, 분석·매매 모듈
-- [config](config): feature 정의와 설정
-- [static](static): 웹 화면
-- [tests](tests): 뉴스와 분석 경계 테스트
+## 어떤 기능이 있나
 
-Python, FastAPI, Uvicorn, Pydantic, pandas·NumPy, SQLite, WebSocket, JavaScript를 사용한다. 외부 LLM API는 분석 설명을 만드는 선택적 구성 요소다.
+- 15개 국내 종목의 가격·거래량 차트와 1/3/5/15분 리샘플
+- 호가 5단계, 외국인·기관 수급, 증권사 회원사 창구 흐름
+- 뉴스의 공식 원출처, 독립 출처, 재배포를 구분한 사건 목록
+- 기술 지표, 재무·거시·업종 지표의 최신 스냅샷
+- 선택적인 외부 LLM 해석, 임계값 경고, LONG/SHORT 가상거래 기록
 
-## 데이터와 컴포넌트
+실제 계좌 주문은 지원하지 않습니다. 뉴스 확인 점수는 승률이 아니며, 학습된 가격 예측 모델이나 통계 백테스트 엔진을 포함하지 않습니다.
 
-MarketProvider가 시장 값을 공급하고 NewsPipelineService가 뉴스 이벤트를 다룬다. OpenDART·ECOS·CSV·수동 입력 등은 ProviderHub를 통해 feature 입력에 연결된다. 공급자 값이 없을 때 사용할 수 없음 상태를 명시한다.
+## 빠르게 실행하기
 
-FeatureRegistry는 feature의 의미와 사용 가능 여부를 관리하고, AnalysisInputBuilder는 분석에 넘길 입력을 구성한다. AiJobManager는 분석 작업을 관리하며 AlertEvaluator는 등록된 조건을 평가한다. SQLite에는 분석·경보·가상 거래 상태를 저장한다.
+Windows와 Python 3.11 이상을 기준으로 합니다. 첫 실행은 데모 모드로 권장합니다.
 
-## 개발 과정
+~~~powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+Copy-Item .env.example .env
+.\.venv\Scripts\python.exe -m uvicorn app:app --host 127.0.0.1 --port 8767
+~~~
 
-1. **차트와 시장 조회에서 시작했다.** 가격 한 종류만으로 판단하기 어려워 재무·거시·수동 입력을 붙일 수 있는 provider 경계를 뒀다.
-2. **feature의 의미를 중앙에서 관리했다.** 각 화면과 분석기가 서로 다른 이름·단위로 같은 값을 해석하지 않도록 registry와 계산 엔진을 분리했다.
-3. **뉴스 수집과 분석 호출을 나눴다.** 같은 뉴스가 반복해서 들어오는 문제를 다루고, 뉴스 상태와 분석 job 상태를 구분했다.
-4. **설명 모델에 전달할 입력을 제한했다.** LLM이 없는 값을 만들어 채우는 대신 가용한 feature와 상태를 분석 입력에 반영하는 구조를 사용한다.
-5. **외부 호출과 화면 갱신을 분리했다.** cache·lock·background task와 WebSocket을 사용해 데이터 요청, 분석, UI 전송의 책임을 나눴다.
-6. **가상매매와 자격증명 저장을 별도 경계로 뒀다.** 수량·진입 비용·청산 결과를 계산하는 모듈과 Windows DPAPI 기반 secret store를 보존했다. 분석 설명을 실거래 체결 보장으로 해석하지 않는다.
+브라우저에서 http://127.0.0.1:8767 을 엽니다. 설정 예시는 합성 시세·뉴스를 사용하며 외부 분석 호출은 꺼져 있습니다. 데모 모드는 시장·뉴스 공급자를 외부에 요청하지 않습니다. 처음 표시되는 설정 창에서는 데모를 유지하려면 닫기/나중에 설정을 선택하세요. 공개 데이터로 전환하는 버튼을 누르면 이후 외부 조회가 발생할 수 있습니다.
 
-## 모델의 역할과 결과
+Windows에서는 의존성을 준비한 뒤 RUN.cmd도 사용할 수 있습니다. launcher가 환경을 준비하면서 패키지 설치를 수행할 수 있으므로, 실행 과정을 직접 확인하려면 위 명령을 사용하세요.
 
-외부 LLM은 관측된 feature를 바탕으로 설명과 구조화된 분석을 만든다. market provider나 feature engine을 대신하는 가격 예측기가 아니다. 뉴스 경보·분석·가상매매를 연결한 소프트웨어 구현이 주된 결과이며 투자 수익이나 방향 정확도의 인증을 주장하지 않는다.
+## 실제 데이터를 사용하려면
 
-데이터 권한·지연·분봉 coverage, 외부 API 비용과 실패, 설명의 오류 가능성이 남아 있다. 외부 모델 자체가 아니라 데이터·작업 상태·API/UI 연결이 이 프로젝트에서 구현한 범위다.
+.env의 DATA_MODE를 public으로 바꾸면 네이버 공개 시장·뉴스 데이터, DART RSS, 공개 거시 원천을 조회합니다. 값마다 공급 주기와 지연이 다르며 모든 항목이 제공되지는 않습니다.
 
-## 실행
+KIS와 OpenDART·ECOS 등의 보강 연결은 화면에서 키를 저장하고 연결 검사 후 사용합니다. 비밀키는 .env에 넣지 않고 Windows 현재 사용자 전용 DPAPI로 저장합니다. 실제 데이터·뉴스 수집은 로컬 DB를 갱신하고, 외부 분석을 켜면 별도 API 비용이 발생할 수 있습니다.
 
-```powershell
-python -m pip install -r requirements.txt
-python -m uvicorn app:app --host 127.0.0.1 --port 8000
-```
+현재 외부 모델 ID는 기존 구현의 설정값을 사용합니다. 해당 모델의 현재 접근 권한과 제공 여부는 별도로 확인해야 하며, 이번 정리에서는 외부 분석 API를 호출하지 않았습니다.
 
-브라우저에서 `http://127.0.0.1:8000`으로 접속한다. 서비스 시작 시 로컬 DB가 생성될 수 있고 설정에 따라 provider 호출이 발생한다. 먼저 [데이터·설정 안내](data/README.md)를 확인한다. API key를 코드나 저장소에 넣지 않는다.
+## 코드 구조
 
-## 상세 문서
+~~~text
+시장 공급자 ─┐
+재무·거시 ──┼─> 기술 계산 / FeatureRegistry ─> 현재 스냅샷 ─> API / WebSocket ─> 화면
+뉴스·공시 ──┘          │
+                  조건부 해석 / 경고 / 가상거래
+                       │
+                     SQLite
+~~~
 
-[서비스 안내](docs/wiki/Home.md) · [구조](docs/wiki/Architecture.md) · [개발 과정·병목](docs/wiki/Development-Journey.md) · [분석 모델의 경계](docs/wiki/Model-Evolution.md) · [확인 범위와 한계](docs/wiki/Validation-and-Results.md) · [출처](ATTRIBUTION.md)
+| 경로 | 역할 |
+|---|---|
+| app.py | FastAPI 라우트, 서비스 조립, 실시간 전달 |
+| market_terminal/providers.py, public_data.py | 시세·호가·분봉·공개 원천 |
+| market_terminal/news_pipeline.py | 종목 매핑, 사건 묶기, 출처 확인·규칙 점수 |
+| market_terminal/feature_engine.py, feature_registry.py | 지표 계산·표준 피처·상태 표시 |
+| market_terminal/feature_providers.py | 재무·거시·수동 입력 보강 |
+| market_terminal/database.py | 뉴스·스냅샷·분석·가상거래 상태 |
+| static/ | JavaScript·Plotly 화면 |
+| config/ | 피처 정의와 종목 프로필 |
+| tests/ | 공급자 장애·뉴스·분석 경계·가상거래·화면 계약 |
+
+Plotly 3.3.1을 저장소에 포함해 차트가 별도 CDN 없이 열리도록 했습니다. 해당 라이브러리의 저작권과 MIT 라이선스는 [third_party/plotly-LICENSE.txt](third_party/plotly-LICENSE.txt)에 있습니다.
+
+## 테스트
+
+~~~powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest -q
+~~~
+
+테스트는 fixture와 임시 DB를 사용합니다. HTTP 요청을 차단한 상태에서 규칙·상태·저장·로컬 API 계약을 검사하며, 실제 시장 데이터의 정확도나 투자 성과를 검증하지는 않습니다. CI는 Linux·Windows에서 같은 테스트를 실행하도록 구성했습니다.
+
+## 남은 한계
+
+현재 최신 값들을 모은 화면이지 과거 분봉마다 당시 알 수 있던 정보만 붙이는 완전한 PIT 시스템은 아닙니다. 원시 체결·OHLCV 전체 이력을 영속 저장하지 않고, 공시 날짜와 실제 발표 시각도 완전히 분리하지 못했습니다.
+
+반복 체결의 거래량 중복 위험, 계약 해지 등 문맥을 놓치는 뉴스 감성 규칙, 장외 뉴스의 반응 시간 처리도 남아 있습니다. 자세한 범위는 [한계](docs/limitations.md), [검증](docs/validation.md), [데이터 구조](docs/architecture.md)에서 설명합니다.
+
+실제 DB, 비밀키, 실행파일과 백업, 가상환경, 작업 전달 자료는 저장소에 포함하지 않습니다. [데이터 안내](data/README.md)와 [출처](ATTRIBUTION.md)를 참고하세요.

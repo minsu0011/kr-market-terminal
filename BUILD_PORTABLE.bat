@@ -1,34 +1,19 @@
 @echo off
 setlocal
 cd /d "%~dp0"
+set "BUILD_PYTHON=python"
+if exist ".venv\Scripts\python.exe" set "BUILD_PYTHON=.venv\Scripts\python.exe"
 
-set "PYTHON=python"
-if exist ".venv\Scripts\python.exe" set "PYTHON=.venv\Scripts\python.exe"
-
-"%PYTHON%" -m pip install --upgrade pyinstaller
+"%BUILD_PYTHON%" -m PyInstaller --noconfirm --clean KR_DayTrading_Terminal.spec
 if errorlevel 1 goto failed
-
-"%PYTHON%" -m PyInstaller --noconfirm --clean KR_DayTrading_Terminal.spec
-if errorlevel 1 goto failed
-
+if not exist "dist\data" mkdir "dist\data"
 copy /y ".env.example" "dist\.env.example" >nul
-if exist "PORTABLE_README.txt" (copy /y "PORTABLE_README.txt" "dist\README.txt" >nul) else (copy /y "..\PORTABLE_README.txt" "dist\README.txt" >nul)
-for %%F in (OPENAI_SETUP.md AI_ANALYSIS_ARCHITECTURE.md API_KEY_GUIDE_KO.md NEWS_PROVIDER_SETUP.md NEWS_PIPELINE_ARCHITECTURE.md NEWS_GPT_VIRTUAL_GUIDE_KO.md) do (
-  if exist "%%F" copy /y "%%F" "dist\%%F" >nul
-  if not exist "%%F" if exist "..\%%F" copy /y "..\%%F" "dist\%%F" >nul
-)
-if not exist "dist\config" mkdir "dist\config"
-xcopy /e /i /y "config" "dist\config" >nul
-if not exist "dist\examples" mkdir "dist\examples"
-xcopy /e /i /y "examples" "dist\examples" >nul
-
-echo.
-echo Portable EXE created: dist\KR_DayTrading_Terminal.exe
-pause
+copy /y "data\external_features.json" "dist\data\external_features.json" >nul
+copy /y "data\news_manual.json" "dist\data\news_manual.json" >nul
+copy /y "RUN_PORTABLE.bat" "dist\RUN_PORTABLE.bat" >nul
+echo Build ready: dist\KR_DayTrading_Terminal.exe
 exit /b 0
 
 :failed
-echo.
-echo Portable build failed. Read the messages above.
-pause
+echo Build failed. Install PyInstaller in the build environment first.
 exit /b 1
